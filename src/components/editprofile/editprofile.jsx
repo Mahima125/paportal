@@ -6,6 +6,7 @@ import {
   faEdit,
   faSave,
   faTimes,
+  faPen
 } from "@fortawesome/free-solid-svg-icons";
 import DashBoardNavBar from "../helper/DashBoardNavBar";
 import RequestBox from "../helper/requestbox";
@@ -23,6 +24,27 @@ const EditProfile = () => {
   const [selectedEndDate, setSelectedEndDate] = useState(null);
   const [isEditingProjects, setIsEditingProjects] = useState(false);
   const [isEditingExperiences, setIsEditingExperiences] = useState(false);
+  const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(false);
+
+  // Function to handle month/year dropdown changes
+  const handleExperienceMonthYearChange = (index, dateField, value, type) => {
+    const updatedExperience = [...data.experience];
+    const currentDate = new Date(updatedExperience[index][dateField]);
+
+    if (type === 'month') {
+      // Get month number from month name (0-11)
+      const monthIndex = new Date(`${value} 1, 2000`).getMonth();
+      currentDate.setMonth(monthIndex);
+    } else if (type === 'year') {
+      currentDate.setFullYear(parseInt(value));
+    }
+
+    updatedExperience[index][dateField] = currentDate;
+    setData({
+      ...data,
+      experience: updatedExperience,
+    });
+  };
 
   const handleStartDateChange = (date) => {
     setSelectedStartDate(date);
@@ -265,141 +287,22 @@ const EditProfile = () => {
       <div>
         <DashBoardNavBar />
       </div>
-      {isProjectModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-65 flex justify-center items-center z-50">
-          <div className="bg-gray-100 rounded-lg p-6 w-11/12 md:w-1/2 lg:w-1/3 relative">
-            <button
-              className="absolute top-4 right-4 text-white bg-blue-500 text-xs hover:bg-blue-700"
-              onClick={() => setIsProjectModalOpen(false)}
-            >
-              <FontAwesomeIcon icon={faTimes} size="lg" />
-            </button>
-            <form onSubmit={handleAddProject}>
-              <div className="flex flex-col gap-4 py-4 ">
-                <div className="flex flex-col">
-                  <label className="mb-2 text-lg font-semibold">Title</label>
-                  <input
-                    type="text"
-                    className="p-2 rounded "
-                    name="projectName"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label className="mb-2 text-lg font-semibold">
-                    Description
-                  </label>
-                  <textarea
-                    className="p-2 rounded border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                    name="projectDescription"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label className="mb-2 text-lg font-semibold">
-                    Project Link
-                  </label>
-                  <input
-                    type="text"
-                    className="p-2 rounded border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                    name="projectLink"
-                  />
-                </div>
-                <button className="bg-blue-500 text-white px-4 py-2 rounded mt-4 hover:bg-blue-700">
-                  <FontAwesomeIcon icon={faSave} className="mr-2" /> Add Project
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {isExperienceModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-65 flex justify-center items-center z-50">
-          <div className="bg-gray-100 rounded-lg p-6 w-11/12 md:w-1/2 lg:w-1/3 relative">
-            <button
-              className="absolute top-4 right-4 text-white bg-blue-500 text-xs hover:bg-blue-700"
-              onClick={() => {
-                setIsExperienceModalOpen(false);
-                setSelectedEndDate(null);
-                setSelectedStartDate(null);
-              }}
-            >
-              <FontAwesomeIcon icon={faTimes} size="lg" />
-            </button>
-            <form onSubmit={handleAddExperience}>
-              <div className="flex flex-col">
-                <label className="mb-2">Role</label>
-                <input
-                  type="text"
-                  className="p-2 rounded border-gray-300"
-                  name="role"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="mb-2">Company Name</label>
-                <input
-                  type="text"
-                  className="p-2 rounded border-gray-300"
-                  name="companyName"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="mb-2">Description</label>
-                <textarea
-                  className="p-2 rounded border-gray-300"
-                  name="description"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="mb-2">Company Link</label>
-                <input
-                  type="text"
-                  className="p-2 rounded border-gray-300"
-                  name="companyLink"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="mb-2">Start Date</label>
-                <DatePicker
-                  selected={selectedStartDate}
-                  onChange={handleStartDateChange}
-                  dateFormat="MMMM yyyy"
-                  showMonthYearPicker
-                  className="p-2 rounded border-gray-300"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="mb-2">End Date</label>
-                <DatePicker
-                  selected={selectedEndDate}
-                  onChange={handleEndDateChange}
-                  dateFormat="MMMM yyyy"
-                  showMonthYearPicker
-                  className="p-2 rounded border-gray-300"
-                />
-              </div>
-              <button className="bg-blue-500 w-full text-white px-4 py-2 rounded mt-4">
-                <FontAwesomeIcon icon={faSave} className="mr-2" /> Add
-                Experience
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <section className="relative profile_page_container dark:bg-[#1f2e44] min-h-screen">
-        <div className="lg:w-5/6 lg:pl-12 w-full mx-auto">
+      <section className="relative min-h-screen">
+        <div className="lg:w-5/6  w-full mx-auto">
           <main className="mx-[3%] my-[1rem] min-h-[80vh]">
             <button
               className="back_btn text-[2rem] p-0 text-black bg-transparent hover:bg-transparent hover:left-[1.5rem] dark:text-white absolute left-[2rem]"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/profile")}
             >
               <IoMdArrowRoundBack />
             </button>
-            <div className="page_components h-full flex py-[2rem] gap-[1rem]">
-              <section className="h-full rounded-xl p-4 bg-gray-100 dark:bg-gray-900 profile_left_section w-[70%] flex flex-col gap-[3rem]">
-                <div className="flex flex-col gap-4">
+            <div className="page_components h-full flex py-[2rem] gap-[6rem]">
+              <section className="h-full rounded-xl  w-[70%] flex flex-col gap-[3rem] -ml-12">
+                <div className="flex flex-col gap-4 mt-8 ">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold mb-4">Basic Info</h2>
-                    <div className="toggle-switch">
+                    <h2 className="text-3xl font-bold mb-4  font-sans">Basic Info</h2>
+                    <div className="toggle-switch flex items-center gap-2">
+                      <span className="text-xl">{isPrivate ? "Private" : "Public"}</span>
                       <label className="switch">
                         <input
                           type="checkbox"
@@ -408,321 +311,573 @@ const EditProfile = () => {
                         />
                         <span className="slider"></span>
                       </label>
-                      <span className="label">
-                        {isPrivate ? "Private" : "Public"}
-                      </span>
                     </div>
                   </div>
-                  {isPrivate && (
-                    <>
-                      <div className="flex flex-col">
-                        <label className="font-semibold mb-2">e-mail</label>
-                        <input
-                          type="text"
-                          className="p-2 rounded border-gray-300"
-                          name="email"
-                          value={data?.basicInfo.email || ""}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <label className="font-semibold mb-2">
-                          phone number
-                        </label>
-                        <input
-                          type="text"
-                          className="p-2 rounded border-gray-300"
-                          name="mobileNo"
-                          value={data?.basicInfo.mobileNo || ""}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                    </>
-                  )}
-                  <div className="flex flex-col">
-                    <label className="font-semibold mb-2">First Name</label>
-                    <input
-                      type="text"
-                      className="p-2 rounded border-gray-300"
-                      name="firstName"
-                      value={data?.basicInfo.firstName || ""}
-                      onChange={handleInputChange}
-                    />
+
+
+                  <div className="flex flex-col gap-4 pl-0">
+                    {isPrivate && (
+                      <>
+                        <div className="flex flex-col">
+                          <label className="font-semibold mb-2">E-mail</label>
+                          <input
+                            type="text"
+                            className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                            name="email"
+                            value={data?.basicInfo.email || ""}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <label className="font-semibold mb-2">
+                            phone number
+                          </label>
+                          <input
+                            type="text"
+                            className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                            name="mobileNo"
+                            value={data?.basicInfo.mobileNo || ""}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    <div className="flex flex-col">
+                      <label className="text-sm font-semibold mb-1">First Name</label>
+                      <input
+                        type="text"
+                        className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                        name="firstName"
+                        value={data?.basicInfo.firstName || ""}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-sm font-semibold mb-1">Last Name</label>
+                      <input
+                        type="text"
+                        className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                        name="lastName"
+                        value={data?.basicInfo.lastName || ""}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-sm font-semibold mb-1">Additional Name</label>
+                      <input
+                        type="text"
+                        className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                        name="additionalName"
+                        value={data?.basicInfo.additionalName || ""}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-sm font-semibold mb-1">HeadLine</label>
+                      <textarea
+                        className="p-2 rounded border border-black focus:outline-none focus:border-black resize-none"
+                        name="location"
+                        value={data?.basicInfo.location || ""}
+                        onChange={handleInputChange}
+                        rows={3} // you can adjust the number of rows as needed
+                      />
+                    </div>
+
+                    <div className="flex flex-col">
+                      <label className="text-sm font-semibold mb-1">Current Position</label>
+                      <input
+                        type="text"
+                        className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                        name="currentPosition"
+                        value={data?.basicInfo.currentPosition || ""}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-sm font-semibold mb-1">Industry</label>
+                      <input
+                        type="text"
+                        className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                        name="industry"
+                        value={data?.basicInfo.industry || ""}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-sm font-semibold mb-1">Location</label>
+                      <input
+                        type="text"
+                        className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                        name="location"
+                        value={data?.basicInfo.location || ""}
+                        onChange={handleInputChange}
+                      />
+
+                    </div>
+
+                    <button
+                      className=" text-white px-32 py-2 rounded mt-4 ml-auto"
+                      onClick={handleSaveBasicInfo}
+                    >
+                      SAVE
+                    </button>
                   </div>
-                  <div className="flex flex-col">
-                    <label className="font-semibold mb-2">Last Name</label>
-                    <input
-                      type="text"
-                      className="p-2 rounded border-gray-300"
-                      name="lastName"
-                      value={data?.basicInfo.lastName || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="mb-2">Additional Name</label>
-                    <input
-                      type="text"
-                      className="p-2 rounded border-gray-300"
-                      name="additionalName"
-                      value={data?.basicInfo.additionalName || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="mb-2">Headline</label>
-                    <input
-                      type="text"
-                      className="p-2 rounded border-gray-300 headline-input"
-                      name="headline"
-                      value={data?.basicInfo.headline || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="mb-2">Current Position</label>
-                    <input
-                      type="text"
-                      className="p-2 rounded border-gray-300"
-                      name="currentPosition"
-                      value={data?.basicInfo.currentPosition || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="mb-2">Industry</label>
-                    <input
-                      type="text"
-                      className="p-2 rounded border-gray-300"
-                      name="industry"
-                      value={data?.basicInfo.industry || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="mb-2">Location</label>
-                    <input
-                      type="text"
-                      className="p-2 rounded border-gray-300"
-                      name="location"
-                      value={data?.basicInfo.location || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
-                    onClick={handleSaveBasicInfo}
-                  >
-                    <FontAwesomeIcon icon={faSave} className="mr-2" /> Save
-                    Basic Info
-                  </button>
                 </div>
 
                 <div className="flex flex-col gap-4 mt-8">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold mb-4">Projects</h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-3xl font-bold font-sans">Projects</h2>
                     <div className="flex gap-4">
-                      <button
-                        className="bg-gray-100 text-black px-4 py-2 rounded hover:bg-gray-100"
-                        onClick={() => setIsProjectModalOpen(true)}
-                      >
-                        <FontAwesomeIcon icon={faPlus} />
+                      <button className="bg-white text-black px-4 py-2 rounded">
+                        <FontAwesomeIcon icon={faPlus} className="text-xl text-black"/>
                       </button>
-                      <button
-                        className="bg-gray-100 text-black px-4 py-2 rounded hover:bg-gray-100"
-                        onClick={() => {
-                          setIsEditingProjects(!isEditingProjects);
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faEdit} />
+                      <button className="text-black px-4 py-2 rounded bg-white">
+                        <FontAwesomeIcon icon={faPen} className="text-xl text-black" />
                       </button>
                     </div>
                   </div>
-                  {data?.projects.map((project, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col gap-4 py-4 border-grey border-b-4 relative"
-                    >
-                      {isEditingProjects && (
-                        <button
-                          className="absolute top-1 right-2 bg-blue-500 text-sm"
-                          onClick={() => handleDeleteProject(project._id)}
-                        >
-                          <IoMdTrash />
-                        </button>
-                      )}
+
+                  {/* Always visible project form */}
+                  <div className="mb-6">
+                    <div className="flex flex-col gap-3">
                       <div className="flex flex-col">
-                        <label className="mb-2">Title</label>
+                        <label className="mb-2">Project Name</label>
                         <input
                           type="text"
-                          className="p-2 rounded border-gray-300"
+                          className="p-2 rounded border border-black focus:outline-none focus:border-black"
                           name="projectName"
-                          value={project.projectName || ""}
-                          onChange={(e) => handleProjectChange(index, e)}
                         />
                       </div>
                       <div className="flex flex-col">
-                        <label className="mb-2">Description</label>
+                        <label className="mb-2">Project Description</label>
                         <textarea
-                          className="p-2 rounded border-gray-300"
+                          className="p-2 rounded border border-black focus:outline-none focus:border-black min-h-[100px]"
                           name="projectDescription"
-                          value={project.projectDescription || ""}
-                          onChange={(e) => handleProjectChange(index, e)}
                         />
                       </div>
                       <div className="flex flex-col">
                         <label className="mb-2">Project Link</label>
                         <input
                           type="text"
-                          className="p-2 rounded border-gray-300"
+                          className="p-2 rounded border border-black focus:outline-none focus:border-black"
                           name="projectLink"
-                          value={project.projectLink || ""}
-                          onChange={(e) => handleProjectChange(index, e)}
                         />
                       </div>
-                      <button
-                        className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
-                        onClick={() => handleSaveProject(index)}
-                      >
-                        <FontAwesomeIcon icon={faSave} className="mr-2" /> Save
-                        Project
-                      </button>
+                      <div className="flex justify-end">
+                        <button
+                          className=" text-white px-32 py-2 rounded mt-4 ml-auto"
+                          onClick={handleAddProject}
+                        >
+                          SAVE
+                        </button>
+                      </div>
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Existing Projects List */}
+                  {data?.projects && data.projects.length > 0 && (
+                    <div className="flex flex-col gap-6">
+                      {data.projects.map((project, index) => (
+                        <div
+                          key={index}
+                          className="flex flex-col gap-4 py-4 border-grey border-b-4 relative"
+                        >
+                          {isEditingProjects && (
+                            <button
+                              className="absolute top-1 right-2 bg-blue-500 text-sm"
+                              onClick={() => handleDeleteProject(project._id)}
+                            >
+                              <IoMdTrash />
+                            </button>
+                          )}
+                          <div className="flex flex-col">
+                            <label className="mb-2">Project Name</label>
+                            <input
+                              type="text"
+                              className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                              name="projectName"
+                              value={project.projectName || ""}
+                              onChange={(e) => handleProjectChange(index, e)}
+                            />
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="mb-2">Project Description</label>
+                            <textarea
+                              className="p-2 rounded border border-black focus:outline-none focus:border-black min-h-[100px]"
+                              name="projectDescription"
+                              value={project.projectDescription || ""}
+                              onChange={(e) => handleProjectChange(index, e)}
+                            />
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="mb-2">Project Link</label>
+                            <input
+                              type="text"
+                              className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                              name="projectLink"
+                              value={project.projectLink || ""}
+                              onChange={(e) => handleProjectChange(index, e)}
+                            />
+                          </div>
+                          <div className="flex justify-end">
+                            <button
+                              className=" text-white px-32 py-2 rounded mt-4 ml-auto"
+                              onClick={() => handleSaveProject(index)}
+                            >
+                              SAVE
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex flex-col gap-4 mt-8">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold mb-4">Experience</h2>
+                <div className="flex flex-col gap-4 mt-3">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-3xl font-bold  font-sans">Experience</h2>
                     <div className="flex gap-4">
-                      <button
-                        className="bg-gray-100 text-black px-4 py-2 rounded hover:bg-gray-100"
-                        onClick={() => setIsExperienceModalOpen(true)}
-                      >
-                        <FontAwesomeIcon icon={faPlus} />
+                      <button className="bg-white text-black px-4 py-2 rounded">
+                        <FontAwesomeIcon icon={faPlus} className="text-xl text-black"/>
                       </button>
-                      <button
-                        className="bg-gray-100 text-black px-4 py-2 rounded hover:bg-gray-100"
-                        onClick={() => {
-                          setIsEditingExperiences(!isEditingExperiences);
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faEdit} />
+                      <button className="text-black px-4 py-2 rounded bg-white">
+                      <FontAwesomeIcon icon={faPen} className="text-xl text-black" />
                       </button>
                     </div>
                   </div>
-                  {data?.experience.map((exp, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col gap-4 py-4 border-grey border-b-4 relative"
-                    >
-                      {isEditingExperiences && (
-                        <button
-                          className="absolute top-1 right-2 bg-blue-500 text-sm"
-                          onClick={() => handleDeleteExperience(exp._id)}
-                        >
-                          <IoMdTrash />
-                        </button>
-                      )}
+
+                  {/* Always visible experience form */}
+                  <div className="mb-6">
+                    <div className="flex flex-col gap-3">
                       <div className="flex flex-col">
                         <label className="mb-2">Company Name</label>
                         <input
                           type="text"
-                          className="p-2 rounded border-gray-300"
+                          className="p-2 rounded border border-black focus:outline-none focus:border-black"
                           name="companyName"
-                          value={exp.companyName || ""}
-                          onChange={(e) => handleExperienceChange(index, e)}
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <label className="mb-2">Role</label>
-                        <input
-                          type="text"
-                          className="p-2 rounded border-gray-300"
-                          name="role"
-                          value={exp.role || ""}
-                          onChange={(e) => handleExperienceChange(index, e)}
                         />
                       </div>
                       <div className="flex flex-col">
                         <label className="mb-2">Description</label>
                         <textarea
-                          className="p-2 rounded border-gray-300"
+                          className="p-2 rounded border border-black focus:outline-none focus:border-black min-h-[150px]"
                           name="description"
-                          value={exp.description || ""}
-                          onChange={(e) => handleExperienceChange(index, e)}
                         />
                       </div>
                       <div className="flex flex-col">
                         <label className="mb-2">Company Link</label>
                         <input
                           type="text"
-                          className="p-2 rounded border-gray-300"
+                          className="p-2 rounded border border-black focus:outline-none focus:border-black"
                           name="companyLink"
-                          value={exp.companyLink || ""}
-                          onChange={(e) => handleExperienceChange(index, e)}
                         />
                       </div>
-                      <div className="flex flex-col">
-                        <label className="mb-2">Start Date</label>
-                        <DatePicker
-                          selected={new Date(exp.startDate)}
-                          onChange={(date) =>
-                            handleDateChange(date, (date) => {
-                              const updatedExperience = [...data.experience];
-                              updatedExperience[index].startDate = date;
-                              setData({
-                                ...data,
-                                experience: updatedExperience,
-                              });
-                            })
-                          }
-                          dateFormat="MMMM yyyy"
-                          showMonthYearPicker
-                          className="p-2 rounded border-gray-300"
+
+                      <div className="flex items-center gap-2 my-2 mt-16">
+                        <input
+                          type="checkbox"
+                          id="isCurrentlyWorking"
+                          name="isCurrentlyWorking"
+                          className="peer hidden"
+                          onChange={(e) => setIsCurrentlyWorking(e.target.checked)}
                         />
+                        <label
+                          htmlFor="isCurrentlyWorking"
+                          className="w-5 h-5 flex items-center justify-center rounded cursor-pointer border border-black
+                                  peer-checked:bg-green-700 
+                                  peer-checked:after:content-['✔'] peer-checked:after:text-white peer-checked:after:text-xs peer-checked:after:font-bold
+                                  peer-checked:after:block peer-checked:after:leading-none"
+                        ></label>
+                        <label htmlFor="isCurrentlyWorking" className="text-gray-600 cursor-pointer">
+                          I am currently working in this role
+                        </label>
                       </div>
+
                       <div className="flex flex-col">
-                        <label className="mb-2">End Date</label>
-                        {exp.isCurrentlyWorking ? (
-                          <input
-                            type="text"
-                            className="p-2 rounded border-gray-300"
-                            name="endDate"
-                            value="Present"
-                            readOnly
-                          />
-                        ) : (
-                          <DatePicker
-                            selected={new Date(exp.endDate)}
-                            onChange={(date) =>
-                              handleDateChange(date, (date) => {
+                        <label className="mb-2 mt-4 text-gray-600">Start date*</label>
+                        <div className="flex gap-2">
+
+                          <div className="relative w-1/2">
+                            <select
+                              name="startMonth"
+                              className="appearance-none w-full p-2 pr-8 rounded border border-black focus:outline-none focus:border-black"
+                            >
+                              <option value="">Month</option>
+                              <option value="January">January</option>
+                              <option value="February">February</option>
+                              <option value="March">March</option>
+                              <option value="April">April</option>
+                              <option value="May">May</option>
+                              <option value="June">June</option>
+                              <option value="July">July</option>
+                              <option value="August">August</option>
+                              <option value="September">September</option>
+                              <option value="October">October</option>
+                              <option value="November">November</option>
+                              <option value="December">December</option>
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                              <svg className="w-3 h-3 fill-current text-black" viewBox="0 0 10 6">
+                                <path d="M0 0l5 6 5-6z" />
+                              </svg>
+                            </div>
+                          </div>
+
+                          {/* Start Year */}
+                          <div className="relative w-1/2">
+                            <select
+                              name="startYear"
+                              className="appearance-none w-full p-2 pr-8 rounded border border-black focus:outline-none focus:border-black"
+                            >
+                              <option value="">Year</option>
+                              <option value="2024">2024</option>
+                              <option value="2023">2023</option>
+                              <option value="2022">2022</option>
+                              <option value="2021">2021</option>
+                              <option value="2020">2020</option>
+                              <option value="2019">2019</option>
+                              <option value="2018">2018</option>
+                              <option value="2017">2017</option>
+                              <option value="2016">2016</option>
+                              <option value="2015">2015</option>
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                              <svg className="w-3 h-3 fill-current text-black" viewBox="0 0 10 6">
+                                <path d="M0 0l5 6 5-6z" />
+                              </svg>
+
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+
+
+                      <div className="flex flex-col">
+                        <label className="mb-2 mt-9 text-gray-600">End date*</label>
+                        <div className="flex gap-2">
+
+                          <div className="relative w-1/2">
+                            <select
+                              name="endMonth"
+                              className="appearance-none w-full p-2 pr-8 bg-gray-200 rounded "
+                              disabled={isCurrentlyWorking}
+                            >
+                              <option value="">Month</option>
+                              <option value="January">January</option>
+                              <option value="February">February</option>
+                              <option value="March">March</option>
+                              <option value="April">April</option>
+                              <option value="May">May</option>
+                              <option value="June">June</option>
+                              <option value="July">July</option>
+                              <option value="August">August</option>
+                              <option value="September">September</option>
+                              <option value="October">October</option>
+                              <option value="November">November</option>
+                              <option value="December">December</option>
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+                              <svg className="w-3 h-3 fill-current text-black" viewBox="0 0 10 6">
+                                <path d="M0 0l5 6 5-6z" />
+                              </svg>
+                            </div>
+                          </div>
+
+                          <div className="relative w-1/2">
+                            <select
+                              name="endYear"
+                              className="appearance-none w-full p-2 pr-8 bg-gray-200 rounded "
+                              disabled={isCurrentlyWorking}
+                            >
+                              <option value="">Year</option>
+                              <option value="2024">2024</option>
+                              <option value="2023">2023</option>
+                              <option value="2022">2022</option>
+                              <option value="2021">2021</option>
+                              <option value="2020">2020</option>
+                              <option value="2019">2019</option>
+                              <option value="2018">2018</option>
+                              <option value="2017">2017</option>
+                              <option value="2016">2016</option>
+                              <option value="2015">2015</option>
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
+                              <svg className="w-3 h-3 fill-current text-black" viewBox="0 0 10 6">
+                                <path d="M0 0l5 6 5-6z" />
+                              </svg>
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+
+
+                      <div className="flex justify-end">
+                        <button
+                          className=" text-white px-32 py-2 rounded mt-4 ml-auto"
+                          onClick={handleAddExperience}
+                        >
+                          SAVE
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Existing Experience List */}
+                  {data?.experience && data.experience.length > 0 && (
+                    <div className="flex flex-col gap-6">
+                      {data.experience.map((exp, index) => (
+                        <div
+                          key={index}
+                          className="flex flex-col gap-4 py-4 border-grey border-b-4 relative"
+                        >
+                          {isEditingExperiences && (
+                            <button
+                              className="absolute top-1 right-2 bg-blue-500 text-sm"
+                              onClick={() => handleDeleteExperience(exp._id)}
+                            >
+                              <IoMdTrash />
+                            </button>
+                          )}
+                          <div className="flex flex-col">
+                            <label className="mb-2">Company Name</label>
+                            <input
+                              type="text"
+                              className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                              name="companyName"
+                              value={exp.companyName || ""}
+                              onChange={(e) => handleExperienceChange(index, e)}
+                            />
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="mb-2">Description</label>
+                            <textarea
+                              className="p-2 rounded border border-black focus:outline-none focus:border-black min-h-[100px]"
+                              name="description"
+                              value={exp.description || ""}
+                              onChange={(e) => handleExperienceChange(index, e)}
+                            />
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="mb-2">Company Link</label>
+                            <input
+                              type="text"
+                              className="p-2 rounded border border-black focus:outline-none focus:border-black"
+                              name="companyLink"
+                              value={exp.companyLink || ""}
+                              onChange={(e) => handleExperienceChange(index, e)}
+                            />
+                          </div>
+
+                          {/* Checkbox for currently working */}
+                          <div className="flex items-center gap-2 my-2 ">
+                            <input
+                              type="checkbox"
+                              id={`isCurrentlyWorking-${index}`}
+                              name="isCurrentlyWorking"
+                              className="w-4 h-4 text-green-500 border-gray-300 rounded focus:ring-green-500"
+                              checked={exp.isCurrentlyWorking || false}
+                              onChange={(e) => {
                                 const updatedExperience = [...data.experience];
-                                updatedExperience[index].endDate = date;
+                                updatedExperience[index].isCurrentlyWorking = e.target.checked;
                                 setData({
                                   ...data,
                                   experience: updatedExperience,
                                 });
-                              })
-                            }
-                            dateFormat="MMMM yyyy"
-                            showMonthYearPicker
-                            className="p-2 rounded border-gray-300"
-                          />
-                        )}
-                      </div>
-                      <button
-                        className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
-                        onClick={() => handleSaveExperience(index)}
-                      >
-                        <FontAwesomeIcon icon={faSave} className="mr-2" /> Save
-                        Experience
-                      </button>
+                              }}
+                            />
+                            <label htmlFor={`isCurrentlyWorking-${index}`} className="text-sm">
+                              I am currently working in this role
+                            </label>
+                          </div>
+
+                          {/* Start date for existing experience */}
+                          <div className="flex gap-2">
+                            <select
+                              name="endMonth"
+                              className="p-2 rounded border border-black focus:outline-none w-1/2 focus:border-black"
+                              value={new Date(exp.endDate).toLocaleString('default', { month: 'long' })}
+                              onChange={(e) => handleExperienceMonthYearChange(index, 'endDate', e.target.value, 'month')}
+                            >
+                              {['January', 'February', 'March', 'April', 'May', 'June',
+                                'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
+                                  <option key={month} value={month}>{month}</option>
+                                ))}
+                            </select>
+                            <select
+                              name="endYear"
+                              className="p-2 rounded border border-black focus:outline-none w-1/2 focus:border-black"
+                              value={new Date(exp.endDate).getFullYear()}
+                              onChange={(e) => handleExperienceMonthYearChange(index, 'endDate', e.target.value, 'year')}
+                            >
+                              {Array.from({ length: 15 }, (_, i) => 2024 - i).map(year => (
+                                <option key={year} value={year}>{year}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* End date for existing experience */}
+                          <div className="flex flex-col">
+                            <label className="mb-2">End date*</label>
+                            {exp.isCurrentlyWorking ? (
+                              <div className="flex gap-2">
+                                <select
+                                  className="p-2 rounded border border-black focus:outline-none w-1/2 focus:border-black"
+                                  disabled
+                                >
+                                  <option>Month</option>
+                                </select>
+                                <select
+                                  className="p-2 rounded border border-black focus:outline-none w-1/2 focus:border-black"
+                                  disabled
+                                >
+                                  <option>Year</option>
+                                </select>
+                              </div>
+                            ) : (
+                              <div className="flex gap-2">
+                                <select
+                                  name="endMonth"
+                                  className="p-2 rounded border border-black focus:outline-none w-1/2 focus:border-black"
+                                  value={new Date(exp.endDate).toLocaleString('default', { month: 'long' })}
+                                  onChange={(e) => handleExperienceMonthYearChange(index, 'endDate', e.target.value, 'month')}
+                                >
+                                  {['January', 'February', 'March', 'April', 'May', 'June',
+                                    'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
+                                      <option key={month} value={month}>{month}</option>
+                                    ))}
+                                </select>
+                                <select
+                                  name="endYear"
+                                  className="p-2 rounded border border-black focus:outline-none w-1/2 focus:border-black"
+                                  value={new Date(exp.endDate).getFullYear()}
+                                  onChange={(e) => handleExperienceMonthYearChange(index, 'endDate', e.target.value, 'year')}
+                                >
+                                  {Array.from({ length: 15 }, (_, i) => 2024 - i).map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex justify-end">
+                            <button
+                              className=" text-white px-32 py-2 rounded mt-4 ml-auto"
+                              onClick={() => handleSaveExperience(index)}
+                            >
+                              SAVE
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               </section>
-              <section className="h-full profile_right_section flex-1">
+              <section className="h-full profile_right_section -mr-12 flex-1">
                 <RequestBox />
               </section>
             </div>

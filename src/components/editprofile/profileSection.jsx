@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { FaExternalLinkAlt } from "react-icons/fa";
-import { currentUser, projects, skills, exps } from "./UserData";
+import { currentUser, projects, skills, exps } from "./UserData.js";
+
 const ProfileSection = () => {
   const [showProjects, setShowProjects] = useState(false);
   const [showSkills, setShowSkills] = useState(false);
+  
+console.log("Data loaded:", { currentUser, projects, skills, exps });
   return (
     <section className="profile_section flex flex-col gap-[3rem]">
       <div className="user-about px-[2rem]">

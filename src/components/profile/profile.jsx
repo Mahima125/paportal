@@ -11,12 +11,15 @@ import ActivitiesSection from "./activitiesSection";
 import ArticlesSection from "./articlesSection";
 import { currentUser } from "./UserData";
 import { useNavigate } from "react-router-dom";
+import SchoolLogo from "../../assets/images/message/Schoollogo.png";
+import { FiBell } from "react-icons/fi";
+import ProfilePicture from "../../assets/images/message/profile.png";
 
 const Profile = () => {
   const [data, setData] = useState(null);
   const [sectionIndex, setSectionIndex] = useState(0);
-  const [showContactInfo, setShowContactInfo] = useState(false); // State to manage visibility of contact info
-  const controlBtns = ["Profile", "Activity & interests", "Articles (3)"];
+  const [showContactInfo, setShowContactInfo] = useState(false);
+  const controlBtns = ["PROFILE", "ACTIVITY & INTERESTS", "ARTICLES (3)"];
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,34 +41,62 @@ const Profile = () => {
 
   return (
     <>
-      <section className="relative profile_page_container bg-indigo-100 dark:bg-[#1f2e44] min-h-screen">
-        {/* Navbar */}
-        <section className="w-full bg-transparent">
-          <Navbar />
-        </section>
-        {/* Profile Page container */}
-        <div className="lg:w-5/6 lg:pl-12 w-full mx-auto">
-          <main className="mx-[3%] my-[1rem] min-h-[80vh]">
+      <section className="relative profile_page_container min-h-screen ">
+        <div
+                style={{
+                  backgroundColor:  "rgb(22, 53, 96)",
+                  position: "relative",
+                  zIndex: 10,
+                }}
+                className="flex items-center justify-between shadow-md h-16 fixed"
+              >
+                <div className="flex items-center">
+                  
+                    <div className="flex items-center bg-white p-2">
+                      <img
+                        src={SchoolLogo}
+                        alt="School Logo"
+                        className="h-12 object-cover"
+                      />
+                    </div>
+              
+                </div>
+        
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <FiBell  />
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                      1
+                    </span>
+                  </div>
+        
+                  <div className="flex items-center">
+                    <img
+                      src={ProfilePicture}
+                      alt="Profile"
+                      className="h-10 w-24 md:w-32 pr-4 flex-shrink-0 rounded-full"
+                    />
+                  </div>
+                </div>
+              </div>
+
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
+          <main className="my-4 min-h-[80vh] relative">
             <button
-              className="back_btn text-[2rem] p-0 text-black bg-transparent hover:bg-transparent hover:left-[1.5rem] dark:text-white absolute left-[2rem]"
-              onClick={() => navigate("/dashboard")}
+              className="back_btn text-[2rem] p-0 text-black bg-transparent hover:bg-transparent hover:left-[1.5rem] dark:text-white absolute left-[2rem] z-10"
+              onClick={() => {
+                window.location.href = "/dashboard";
+              }}
             >
               <IoMdArrowRoundBack />
             </button>
-            <div className="page_components h-full flex py-[2rem] gap-[1rem]">
-              <section className="h-full rounded-xl p-4 bg-gray-100 dark:bg-gray-900 profile_left_section w-[70%] flex flex-col gap-[3rem] ">
-                <div className="bg-img relative">
-                  <img
-                    src={currentUser.coverImg}
-                    alt="Cover"
-                    width="100%"
-                    className="h-[180px] rounded-lg"
-                  />
-                  <div className="absolute top-5 right-5 edit-options flex w-fit ml-auto gap-4">
-                    <button className="profile-control-options py-2 px-3 rounded-full bg-[#0D0D0D99] flex justify-between items-center hover:bg-[#0b72da24] ml-auto text-white ">
-                      <FaRegEdit />
+            <div className="page_components h-full flex flex-col lg:flex-row gap-6 mt-16">
+              <section className="w-full lg:w-2/3 h-full rounded-xl bg-white ">
+                <div className="relative p-4">
+                  <div className="flex justify-end space-x-2 mb-4">
+                    <button className="py-2 px-3 rounded-full flex items-center bg-white  ">
+                      <FaRegEdit className="mr-1" />
                       <span
-                        className="px-2"
                         onClick={() =>
                           navigate(`/${data && data.basicInfo.userId}/editprofile`)
                         }
@@ -73,74 +104,82 @@ const Profile = () => {
                         Edit Profile
                       </span>
                     </button>
-                    <button className="profile-control-options py-2 px-3 rounded-full bg-[#0D0D0D99] flex justify-between items-center hover:bg-[#0b72da24] ml-auto text-white">
+                    <button className="py-2 px-3 rounded-full bg-white ">
                       <SlOptionsVertical />
                     </button>
                   </div>
-                </div>
-                <section className="user-profile-head flex gap-4 items-center px-[1rem] mt-[-2rem]">
-                  <img
-                    src={currentUser.userImg}
-                    alt={currentUser.userName}
-                    width="170px"
-                    height="170px"
-                    className="rounded-full border-8 border-black mt-[-4rem] z-10 dark:border-white"
-                  />
-                  <div className="user_head_desc flex-1 flex flex-col gap-2 ">
-                    <h1 className="flex justify-between items-baseline text-[18px] font-bold">
-                      {data && data.basicInfo.firstName} {data && data.basicInfo.lastName}
-                      <div className="contact_info flex items-center text-[0.8rem] sm:text-[1rem] sm:px-8 p-2 rounded gap-2">
-                        <BiSolidNavigation className="text-[#0B73DA]" />
-                        <span>{data && data.basicInfo.location}</span>
-                      </div>
-                    </h1>
-                    <p className="text-[14px]">{data && data.basicInfo.headline}</p>
-                    <div className="user_misc_details flex items-center gap-2 font-semibold text-center">
-                      <div
-                        className="contact_info bg-sky-800 text-gray-200  text-[0.8rem] sm:text-[1rem] sm:px-8 p-2 rounded-lg cursor-pointer"
-                        onClick={() => setShowContactInfo(!showContactInfo)}
-                      >
-                        Contact Info
-                      </div>
-                      <div className="contact_info border-2 text-sky-800  text-[0.8rem] sm:text-[1rem] sm:px-8 p-2 rounded-lg cursor-pointer">
-                        {currentUser.connections} Connections
-                      </div>
-                    </div>
-                    {/* Display contact info if showContactInfo is true */}
-                    {showContactInfo && (
-                      <div className="contact-info-details text-lg">
-                        <p>
-                          <span className="font-bold">Email:</span>{" "}
-                          <span>{data && data.basicInfo.email}</span>
-                        </p>
-                        <p>
-                          <span className="font-bold">Mobile:</span>{" "}
-                          <span>{data && data.basicInfo.mobileNo}</span>
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </section>
-                <hr className="bg-gray-900" />
-                <div className="user-head-controls flex">
-                  {controlBtns.map((btn, index) => (
-                    <button
-                      key={index}
-                      className={`p-3 text-center rounded-lg mx-2 font-bold  flex-1 border-2 hover:font-bold hover:border-sky-800 ${
-                        sectionIndex === index
-                          ? `border-sky-800 text-black bg-gray-200 hover:text-white`
-                          : `bg-transparent text-black hover:text-white dark:text-white rounded-lg`
-                      }`}
-                      onClick={() => setSectionIndex(index)}
-                    >
-                      {btn}
-                    </button>
-                  ))}
-                </div>
 
-                {data && sections[sectionIndex]}
+                  <section className="user-profile-head flex flex-col sm:flex-row gap-4 items-center sm:items-start px-4 mb-6">
+                    <div className="relative">
+                      <img
+                        src={currentUser.userImg}
+                        alt={currentUser.userName}
+                        width="130"
+                        height="130"
+                        className="rounded-full border-4  shadow-md"
+                      />
+                    </div>
+                    <div className="user_head_desc flex-1 flex flex-col gap-2 text-center sm:text-left">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                        <h1 className="text-xl font-bold">Username</h1>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed dapibus eros eu vehicula interdum. Cras nec ultricies massa.
+                      </p>
+                      <div className="user_misc_details flex flex-wrap justify-center sm:justify-start items-center gap-2 font-semibold mt-2">
+                        <button
+                          className="contact_info bg-[#0B73DA]  text-sm px-4 py-2 rounded hover:bg-blue-700"
+                          onClick={() => setShowContactInfo(!showContactInfo)}
+                        >
+                          CONTACT INFO
+                        </button>
+                        <button className="contact_info bg-[#0B73DA] text-sm px-4 py-2 rounded hover:bg-blue-700">
+                          1,043 CONNECTIONS
+                        </button>
+                        <div className="contact_info flex items-center text-sm p-1 rounded gap-1">
+                          <BiSolidNavigation className="text-blue-600" />
+                          <span>City, country</span>
+                        </div>
+                      </div>
+
+                      {showContactInfo && (
+                        <div className="contact-info-details text-sm mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          <p className="mb-1">
+                            <span className="font-bold">Email:</span>{" "}
+                            <span>{data && data.basicInfo.email}</span>
+                          </p>
+                          <p>
+                            <span className="font-bold">Mobile:</span>{" "}
+                            <span>{data && data.basicInfo.mobileNo}</span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+
+                  <div className="user-head-controls flex border-b border-gray-200">
+                    {controlBtns.map((btn, index) => (
+                      <button
+                        key={index}
+                        className={`py-3 px-2 text-center text-sm font-medium flex-1 transition-colors
+                          ${sectionIndex === index
+                            ? `bg-[#0B73DA] `
+                            : `bg-transparent text-gray-600 hover:text-blue-600`
+                          }`}
+                        onClick={() => setSectionIndex(index)}
+                      >
+                        {btn}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="content-section mt-6">
+                    {sections[sectionIndex]}
+                  </div>
+                </div>
               </section>
-              <section className="h-full profile_right_section flex-1">
+
+              <section className="w-full lg:w-1/3">
                 <RequestBox />
               </section>
             </div>

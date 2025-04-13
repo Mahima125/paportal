@@ -1,69 +1,81 @@
-// AuthContext.jsx
 import { createContext, useState, useEffect } from "react";
+import { 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut, 
+  onAuthStateChanged
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase/config";
 
-export const AuthContext = createContext({
-  authToken: null,
-  user: null,
-  login: () => {},
-  logout: () => {},
-  isLoading: true,
-});
+export const AuthContext = createContext();
 
-const AuthProvider = ({ children }) => {
-  const [authToken, setAuthToken] = useState(null);
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+export const AuthProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    if (token) {
-      setAuthToken(token);
-      fetchUserData(token);
-    } else {
-      setIsLoading(false);
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      setLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
-  const fetchUserData = async (token, cb) => {
+
+  const login = (token, callback) => {
+    localStorage.setItem("token", token);
+    if (callback) callback();
+  };
+
+  const signInWithGoogle = async (userType, callback) => {
     try {
-      const response = await fetch("http://localhost:3000/api/users/getUser", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const userData = await response.json();
-      setUser(userData);
-      setIsLoading(false);
-      if (cb) {
-        cb();
-      }
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        userType: userType, 
+        createdAt: new Date()
+      }, { merge: true });
+
+      const token = await user.getIdToken();
+      localStorage.setItem("token", token);
+      
+      if (callback) callback();
+      return user;
     } catch (error) {
-      console.error("Failed to fetch user data", error);
+      console.error("Error signing in with Google:", error);
+      throw error;
     }
   };
 
-  const login = (token, cb) => {
-    sessionStorage.setItem("token", token);
-    setAuthToken(token, cb);
-    fetchUserData(token, cb);
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      localStorage.removeItem("token");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      throw error;
+    }
   };
 
-  const logout = () => {
-    sessionStorage.removeItem("token");
-    setAuthToken(null);
-    setUser(null);
-  };
-
-  const ctxValue = {
-    authToken,
-    user,
+  const value = {
+    currentUser,
     login,
-    logout,
-    isLoading, // Pass isLoading to the context value
+    signInWithGoogle,
+    logout
   };
 
   return (
-    <AuthContext.Provider value={ctxValue}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
   );
 };
 

@@ -1,13 +1,18 @@
-// ProtectedRoute.jsx
-import React, { useContext } from "react";
-import { AuthContext } from "../../contexts/AuthContext";
-import { Navigate, Outlet } from "react-router-dom";
+// src/components/ProtectedRoute.js
+import { useContext } from 'react';
+import { Navigate } from 'react-router-dom';
+import { AuthContext } from '../../contexts/AuthContext';
 
-export default function ProtectedRoute() {
-  const { user, isLoading } = useContext(AuthContext);
-  if (isLoading) {
-    return <div>Loading...</div>;
+const ProtectedRoute = ({ children }) => {
+  const { currentUser } = useContext(AuthContext);
+  
+  if (!currentUser) {
+    // User is not authenticated, redirect to login
+    return <Navigate to="/login" replace />;
   }
+  
+  // User is authenticated, render the children components
+  return children;
+};
 
-  return user ? <Outlet /> : <Navigate to="/login" />;
-}
+export default ProtectedRoute;

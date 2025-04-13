@@ -1,122 +1,170 @@
-import React, { useState , useEffect } from "react";
-import { FaExternalLinkAlt } from "react-icons/fa";
-import { currentUser, projects, skills, exps } from "./UserData";
-const ProfileSection = ({userdata}) => {
+import React, { useState, useRef, useEffect } from "react";
+import { currentUser, projects, skills, exps } from "./UserData.js";
+import { IoAddOutline } from 'react-icons/io5';
+import { BiPencil } from 'react-icons/bi';
+
+const ProfileSection = ({ userdata }) => {
   const [showProjects, setShowProjects] = useState(false);
   const [showSkills, setShowSkills] = useState(false);
-  console.log(userdata)
+  const [expanded, setExpanded] = useState(false);
+  const [showSeeMore, setShowSeeMore] = useState(false);
+  const textRef = useRef(null);
 
-  const formatDate = (isoDate) => {
-    const date = new Date(isoDate);
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
-    }).format(date);
-  };
+  useEffect(() => {
+    if (textRef.current && textRef.current.scrollHeight > 50) {
+      setShowSeeMore(true);
+    }
+  }, [userdata]);
+  
+  console.log("Data loaded:", { currentUser, projects, skills, exps });
+  
   return (
-    <section className="profile_section flex flex-col gap-[3rem]">
-      <div className="user-about px-[2rem]">
-        <h2 className="text-[18px] font-bold">About</h2>
-        <p>{userdata.basicInfo.currentPosition}</p>
+    <div className="profile_section flex flex-col gap-6">
+      <div className="user-about">
+        <h2 className="text-xl font-bold mb-2">About</h2>
+        <div className="relative">
+          <p
+            ref={textRef}
+            className={`text-gray-700 transition-all duration-300 ${!expanded ? "line-clamp-2" : ""}`}
+          >
+            {currentUser.userDesc}
+          </p>
+          {showSeeMore && (
+            <button
+              className="text-blue-600 bg-white -ml-5 font-medium mt-1"
+              onClick={() => setExpanded(!expanded)}
+            >
+              {expanded ? "SEE LESS" : "SEE MORE"}
+            </button>
+          )}
+        </div>
       </div>
-      <hr className="bg-gray-900" />
-      <div className="project_section px-[2rem]">
-        <h2 className="text-[18px] font-bold">
-          Projects
-          {/* <span className="text-[#747474]">
-            {" "}
-            {showProjects ? projects.length + " of " : "3 of "}
-            {projects.length}
-          </span> */}
-        </h2>
-        <div className="projects_lists m-4">
-          {userdata.projects
-            //.slice(0, showProjects ? projects.length : 3)
-            .map((project, index) => (
-              <div
-                className="project_container flex flex-col gap-4 py-4 border-grey border-b-4"
-                key={index}
-              >
-                <div className="project_details_head ">
-                  <h3 className="font-bold text-[16px]">
-                    {project.projectName}
-                  </h3>
-                  <h4 className="text-[#747474] text-[16px]">
-                    {project.projectTime}
-                  </h4>
+
+      <div className="projects-section">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            Projects
+            <span className="text-gray-500 font-normal text-sm">
+              {showProjects ? projects.length : 3} of {projects.length}
+            </span>
+          </h2>
+          <div className="flex gap-2">
+            <button className="p-2 rounded-full bg-gray-50 hover:bg-gray-100">
+              <IoAddOutline size={20} />
+            </button>
+            <button className="p-2 rounded-full bg-gray-50 hover:bg-gray-100">
+              <BiPencil size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div className="projects-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {projects
+            .slice(0, showProjects ? projects.length : 3)
+            .map((project) => (
+              <div key={project.id} className="project-card flex flex-col">
+                <div className="project-image mb-2 overflow-hidden rounded">
+                  <img
+                    src={project.projectImage || "/api/placeholder/300/200"}
+                    alt={project.projecTitle}
+                    className="w-full h-32 object-cover"
+                  />
                 </div>
-                <button className="text-[16px] w-fit py-2 px-4 bg-transparent text-[#747474] flex gap-2 items-center rounded-[32px] border-black dark:border-white border-2">
-                  <span>Show Project</span>
-                  <FaExternalLinkAlt />
-                </button>
-                <p className="text-[16px] text-[#747474]">
-                  {project.projectDescription}
+                <h3 className="font-medium text-base">{project.projecTitle}</h3>
+                <p className="text-sm text-gray-600">
+                  {project.projectType}, {project.projectDate}
                 </p>
               </div>
             ))}
         </div>
-        {/* <button
-          className="text-[#0B73DA] bg-transparent p-0"
-          onClick={() => setShowProjects(!showProjects)}
-        >
-          Show ALL ({projects.length})
-        </button> */}
+
+        <div className="mt-3">
+          <button
+            className="text-blue-600 bg-white -ml-5 font-medium hover:underline"
+            onClick={() => setShowProjects(!showProjects)}
+          >
+            {showProjects ? "SHOW LESS" : "SHOW ALL (" + projects.length + ")"}
+          </button>
+        </div>
       </div>
-      <hr className="bg-gray-900" />
-      <div className="skills_section px-[2rem]">
-        <h2 className="text-[18px] font-bold">Skills</h2>
-        <div className="skills_list my-4 flex flex-wrap gap-4">
+
+      <div className="skills-section mt-2">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Skills</h2>
+          <div className="flex gap-2">
+            <button className="p-2 rounded-full bg-gray-50 hover:bg-gray-100">
+              <IoAddOutline size={20} />
+            </button>
+            <button className="p-2 rounded-full bg-gray-50 hover:bg-gray-100">
+              <BiPencil size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div className="skills-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {skills
             .slice(0, showSkills ? skills.length : 3)
-            .map((skill, index) => (
+            .map((skill) => (
               <div
-                className="skills_container flex flex-1 justify-between p-4 h-[80px] border-[rgba(23, 23, 23, 0.20)] border-4 gap-4 items-center min-w-[175px]"
-                key={index}
+                key={skill.id}
+                className="skill-card flex justify-between items-center p-3 border border-gray-200 rounded"
               >
-                <h3 className="font-bold text-[16px]">{skill.title}</h3>
-                <span className="text-[#0B73DA] font-bold">{skill.score}</span>
+                <h3 className="font-medium">{skill.title}</h3>
+                <span className="text-blue-600 font-bold">{skill.score}</span>
               </div>
             ))}
         </div>
-        <button
-          className="text-[#0B73DA] bg-transparent p-0"
-          onClick={() => setShowSkills(!showSkills)}
-        >
-          Show ALL ({skills.length})
-        </button>
+
+        <div className="mt-3">
+          <button
+            className="text-blue-600 bg-white -ml-5 font-medium hover:underline"
+            onClick={() => setShowSkills(!showSkills)}
+          >
+            {showSkills ? "SHOW LESS" : "SHOW ALL (" + skills.length + ")"}
+          </button>
+        </div>
       </div>
-      <hr className="bg-gray-900" />
-      <div className="experience_section px-[2rem]">
-        <h2 className="text-[18px] font-bold">Experience</h2>
-        <div className="experience_list my-4 flex flex-col gap-4">
-        {userdata.experience.map((exp, index) => (
+      
+      <div className="experience_section mt-2">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Experience</h2>
+          <div className="flex gap-2">
+            <button className="p-2 rounded-full bg-gray-50 hover:bg-gray-100">
+              <IoAddOutline size={20} />
+            </button>
+            <button className="p-2 rounded-full bg-gray-50 hover:bg-gray-100">
+              <BiPencil size={18} />
+            </button>
+          </div>
+        </div>
+        <div className="experience_list flex flex-col gap-4">
+          {exps.map((exp, index) => (
             <div
-              className="exp_container flex flex-1 justify-between p-4 border-[rgba(23, 23, 23, 0.20)] border-b-4 gap-4 text-[14px]"
+              className="exp_container flex p-4 border-b border-gray-200 gap-4 text-sm"
               key={index}
             >
-              <div className="exp-img rounded-full bg-[#F59B2D] w-[75px] h-[75px] aspect-square"></div>
-              <div className="exp_details flex flex-col gap-3 text-[#747474]">
-                <h3 className="font-bold text-[16px] text-black dark:text-white">
-                  {exp.role ? exp.role : "Dev"}
+              <div className="exp-img rounded-full bg-[#F59B2D] w-12 h-12 flex-shrink-0"></div>
+              <div className="exp_details flex flex-col gap-2 text-gray-500 flex-1">
+                <h3 className="font-bold text-base text-black dark:text-white">
+                  {exp.title}
                 </h3>
-                <h4 className="flex gap-8 items-center">
-                  <span className="font-semibold">{exp.companyName}</span>
+                <div className="flex flex-col sm:flex-row sm:gap-6 items-start sm:items-center text-black">
+                  <span className="font-semibold">{exp.company}</span>
                   <span>{exp.type}</span>
-                </h4>
-                <h5 className="flex gap-8 items-center">
+                </div>
+                <div className="flex flex-col sm:flex-row sm:gap-6 items-start sm:items-center text-black">
                   <div className="exp_time_period">
-                    <span>{formatDate(exp.startDate)}</span> -{" "}
-                    <span>{formatDate(exp.endDate)}</span>
+                    <span>{exp.start}</span> - <span>{exp.end}</span>
                   </div>
-                  <span className="text-[#0B73DA]">{exp.time}</span>
-                </h5>
-                <p>{exp.description}</p>
+                  <span className="text-blue-600">{exp.time}</span>
+                </div>
+                <p className="text-black">{exp.desc}</p>
               </div>
             </div>
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 

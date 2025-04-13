@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Dashboard from "./components/dashboard/dashboard";
 import Notification from "./components/notification/notification";
 import TripleLogin from "./components/login/TripleLogin";
+import HodLogin from "./components/login/HodLogin";
+import Login from "./components/login/LoginPage.jsx";
 import Approval_page from "./components/admin/approval_page";
 import Feedback from "./components/forms/feedbackForm";
 import MessageBoard from "./components/message/messageBoard";
@@ -22,23 +24,34 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route element={<ProtectedRoute />}>
-            <Route path="/approval" element={<Approval_page />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/feedback" element={<Feedback />} />
-            <Route path="/notification" element={<Notification />} />
-            <Route path="/messages" element={<MessageBoard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/:id/editprofile" element={<EditProfile />} /> 
+          
+            
 
-          </Route>
+          
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<TripleLogin />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/triplelogin" element={<TripleLogin />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/hodlogin" element={<HodLogin />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/onboarding1" element={<ScreenOne />} />
           <Route path="/onboarding2" element={<ScreenTwo />} />
           <Route path="/onboarding3" element={<ScreenThree />} />
+          <Route path="/approval" element={<Approval_page />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/notification" element={<Notification />} />
+            <Route path="/messages" element={<MessageBoard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/:id/editprofile" element={<EditProfile />} /> 
 
         </Routes>
       </Router>

@@ -1,16 +1,8 @@
 import { useState } from "react";
-// import { FaFacebook, FaGoogle, FaTwitter } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import VerificationModal from "./VerficationModal.jsx";
 import { IoClose } from "react-icons/io5";
-
-// Important info for Backend Devs :
-
-// The handling between Faculty, Student or Alumni Login is decided by the variable activeUser
-
-// activeUser = 1 : Student Login
-// activeUser = 2 : Faculty Login
-// activeUser = 3 : Alumni Login
+import student from '../../assets/images/student.png';
 
 const InitialRegisterState = {
   type: "Student",
@@ -20,7 +12,7 @@ const InitialRegisterState = {
   phoneNumber: "",
   dob: "",
   password: "",
-  schoolCode: "",
+  position: "",
 };
 
 const SignUpPage = () => {
@@ -31,9 +23,7 @@ const SignUpPage = () => {
   const [user, setUser] = useState(InitialRegisterState);
 
   function handleChange(e) {
-    // console.log(e);
     const { id, value } = e.target;
-    // console.log(id, " ", value);
     setUser({
       ...user,
       [id]: value,
@@ -45,13 +35,14 @@ const SignUpPage = () => {
       buttonNumber === 1
         ? "Student"
         : buttonNumber === 2
-        ? "Faculty"
-        : "Alumni";
+          ? "Faculty"
+          : "Alumni";
     setUser({ type: type });
     setactiveUser(buttonNumber);
     setImageOpacity(0);
     setTimeout(() => setImageOpacity(1), 100);
   };
+
   const sendOtp = async () => {
     try {
       const response = await fetch(
@@ -85,12 +76,12 @@ const SignUpPage = () => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const handleRegisterClick = () => {
     if (
-      user.dob.trim().length === 0 ||
-      !user.email.includes("@") ||
-      user.password.trim().length === 0 ||
-      user.phoneNumber.trim().length === 0 ||
-      user.schoolCode.trim().length === 0 ||
-      user.userID.trim().length === 0
+      !user.name || user.name.trim() === "" ||
+      !user.email || !user.email.includes("@") ||
+      !user.phoneNumber || user.phoneNumber.trim() === "" ||
+      !user.dob || user.dob.trim() === "" ||
+      !user.password || user.password.trim() === "" ||
+      !user.position || user.position.trim() === ""
     ) {
       alert("Fill the details properly!");
       return;
@@ -98,6 +89,7 @@ const SignUpPage = () => {
     sendOtp();
     setShowOtpModal(true);
   };
+
   const onOtpSubmit = async () => {
     try {
       const response = await fetch("http://localhost:3000/api/users/register", {
@@ -124,127 +116,42 @@ const SignUpPage = () => {
       console.log(err);
     }
   };
+
   return (
-    <div className="w-full min-h-screen bg-indigo-100 flex justify-center items-center p-4 sm:p-8">
-      <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl">
-        {/* Hero Image */}
-        <div className="flex items-center justify-center p-4 sm:p-10 m-4 md:m-10 md:w-1/2">
-          {activeUser === 1 && (
-            <img
-              src="/Images/LoginImages/StudentImage.png"
-              alt="Student Image"
-              style={{
-                maxWidth: "100%",
-                maxHeight: "100%",
-                opacity: imageOpacity,
-                transition: "opacity 0.2s ease-in-out",
-              }}
-              className="w-24 md:w-48 lg:w-96"
-            />
-          )}
-          {activeUser === 2 && (
-            <img
-              src="/Images/LoginImages/FacultyImage.png"
-              alt="Faculty Image"
-              style={{
-                maxWidth: "100%",
-                maxHeight: "100%",
-                opacity: imageOpacity,
-                transition: "opacity 0.2s ease-in-out",
-              }}
-              className="w-24 md:w-48 lg:w-96"
-            />
-          )}
-          {activeUser === 3 && (
-            <img
-              src="/Images/LoginImages/AlumniImage.png"
-              alt="Alumni Image"
-              style={{
-                maxWidth: "100%",
-                maxHeight: "100%",
-                opacity: imageOpacity,
-                transition: "opacity 0.2s ease-in-out",
-              }}
-              className="w-24 md:w-32 lg:w-56 xl:w-96"
-            />
-          )}
+    <div className="w-full min-h-screen bg-[#BCCBE1] flex flex-col justify-center items-center py-6 px-2 sm:p-2 md:p-8">
+      <div className="block sm:hidden w-full flex justify-center mb-8 mt-6">
+        <button className="bg-[#F4E23C] text-[#1B4075] font-extrabold py-4 px-6 rounded-full hover:bg-yellow-500 transition duration-300 z-10">
+          CREATE YOUR ACCOUNT
+        </button>
+      </div>
+
+      <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 w-full max-w-7xl">
+        <div className=" md:flex flex-1 items-center justify-center">
+          <img
+            src={student}
+            alt="Student Image"
+            style={{
+              width: "100%",
+              height: "auto",
+              maxHeight: "80vh",
+              objectFit: "contain",
+              opacity: imageOpacity,
+              transition: "opacity 0.2s ease-in-out",
+            }}
+            className="md:h-full"
+          />
         </div>
-        {/* Form */}
-        <div className="bg-white w-full md:w-1/2 shadow-xl mx-4 md:mx-0 rounded-3xl p-4 lg:p-5 m-4 md:m-10 flex flex-col items-center">
-          <div className="bg-blue-100 rounded-full w-full flex justify-center relative mb-4">
-            {/* Sliding Button */}
-            <button
-              className="absolute left-0 top-0 w-1/3"
-              style={{
-                borderRadius: "999px",
-                marginLeft:
-                  activeUser === 1 ? "0%" : activeUser === 2 ? "33%" : "67%",
-                transition: "all 0.3s ease-in-out",
-                boxShadow: "0 0 20px rgba(30, 58, 138, 0.7)",
-              }}
-            >
-              <p className="font-extrabold">
-                {activeUser === 1
-                  ? "STUDENT"
-                  : activeUser === 2
-                  ? "FACULTY"
-                  : "ALUMNI"}
-              </p>
-            </button>
 
-            {/* Student Button */}
-            <button
-              onClick={() => handleButtonClick(1)}
-              style={{
-                backgroundColor: "#dbeafe",
-                border: "none",
-                borderRadius: "999px",
-                cursor: "pointer",
-                transition: "all 0.2s ease-in-out",
-                color: activeUser !== 1 ? "black" : "rgba(0, 0, 0, 0)",
-              }}
-              className="w-1/3 font-extrabold py-2"
-            >
-              STUDENT
-            </button>
-
-            {/* Faculty Button */}
-            <button
-              onClick={() => handleButtonClick(2)}
-              style={{
-                backgroundColor: "#dbeafe",
-                border: "none",
-                borderRadius: "999px",
-                cursor: "pointer",
-                transition: "all 0.2s ease-in-out",
-                color: activeUser !== 2 ? "black" : "rgba(0, 0, 0, 0)",
-              }}
-              className="w-1/3 font-extrabold py-2"
-            >
-              FACULTY
-            </button>
-
-            {/* Alumni Button */}
-            <button
-              onClick={() => handleButtonClick(3)}
-              style={{
-                backgroundColor: "#dbeafe",
-                border: "none",
-                borderRadius: "999px",
-                cursor: "pointer",
-                transition: "all 0.2s ease-in-out",
-                color: activeUser !== 3 ? "black" : "rgba(0, 0, 0, 0)",
-              }}
-              className="w-1/3 font-extrabold py-2"
-            >
-              ALUMNI
+        <div className="flex-1 bg-white shadow-[0_0_30px_rgba(0,0,0,0.3)] rounded-3xl p-1 flex flex-col items-center mt-4 mb-8 w-full sm:p-2 md:p-3 sm:mt-4 sm:mb-8 md:w-auto">
+          <div className="hidden sm:flex w-full justify-center my-5">
+            <button className="bg-[#F4E23C] text-[#1B4075] font-extrabold py-5 px-6 rounded-full hover:bg-yellow-500 transition duration-300">
+              CREATE YOUR ACCOUNT
             </button>
           </div>
 
-          {/* Input Fields */}
-          <div className="w-full px-4 sm:px-6 md:px-8 lg:px-10">
-            <div className="flex flex-col p-3 text-blue-900">
-              <p className="font-bold text-lg p-2">Name</p>
+          <div className="w-full px-3 sm:px-3 md:px-6">
+            <div className="flex flex-col p-2 md:p-2 text-blue-900">
+              <p className="font-bold text-lg mt-2">Name</p>
               <input
                 required
                 type="text"
@@ -253,48 +160,10 @@ const SignUpPage = () => {
                 placeholder="Your Name"
                 value={user.name}
                 onChange={handleChange}
-                className="px-4 py-2 border border-slate-500 text-blue-900 font-semibold shadow-sm rounded-full "
+                className="px-4 py-3 border border-slate-500 text-white bg-[#1B4075] font-semibold shadow-sm rounded-full mb-4 md:mb-3 focus:outline-none focus:bg-[#1B4075]"
               />
-              {activeUser === 1 && (
-                <>
-                  <p className="font-bold text-lg p-2">School Code</p>
-                  <input
-                    required
-                    type="text"
-                    id="schoolCode"
-                    name="schoolCode"
-                    placeholder="Your School Code"
-                    value={user.schoolCode}
-                    onChange={handleChange}
-                    className="px-4 py-2 border border-slate-500 text-blue-900 font-semibold shadow-sm rounded-full "
-                  />
-                </>
-              )}
-              <p className="font-bold text-lg p-2">
-                {activeUser === 1
-                  ? "Student"
-                  : activeUser === 2
-                  ? "Faculty"
-                  : "Alumni"}{" "}
-                ID
-              </p>
-              <input
-                required
-                type="number"
-                id="userID"
-                name="userID"
-                placeholder={`Enter your ${
-                  activeUser === 1
-                    ? "Student"
-                    : activeUser === 2
-                    ? "Faculty"
-                    : "Alumni"
-                } ID`}
-                value={user.userID}
-                onChange={handleChange}
-                className="px-4 py-2 border border-slate-500 text-blue-900 font-semibold shadow-sm rounded-full "
-              />
-              <p className="font-bold text-lg p-2">Email</p>
+              
+              <p className="font-bold text-lg mt-2">Email Address</p>
               <input
                 required
                 type="email"
@@ -303,9 +172,10 @@ const SignUpPage = () => {
                 value={user.email}
                 onChange={handleChange}
                 placeholder="Your Email Address"
-                className="px-4 py-2 border border-slate-500 text-blue-900 font-semibold shadow-sm rounded-full "
+                className="px-4 py-3 border border-slate-500 text-white bg-[#1B4075] font-semibold shadow-sm rounded-full mb-4 md:mb-3 focus:outline-none focus:bg-[#1B4075]"
               />
-              <p className="font-bold text-lg p-2">Phone Number</p>
+
+              <p className="font-bold text-lg mt-2">Phone Number</p>
               <input
                 required
                 type="number"
@@ -314,9 +184,10 @@ const SignUpPage = () => {
                 value={user.phoneNumber}
                 onChange={handleChange}
                 placeholder="Your Phone Number"
-                className="px-4 py-2 border border-slate-500 text-blue-900 font-semibold shadow-sm rounded-full "
+                className="px-4 py-3 border border-slate-500 text-white bg-[#1B4075] font-semibold shadow-sm rounded-full mb-4 md:mb-3 focus:outline-none focus:bg-[#1B4075]"
               />
-              <p className="font-bold text-lg p-2">Date Of Birth</p>
+              
+              <p className="font-bold text-lg mt-2">Date Of Birth</p>
               <input
                 required
                 type="date"
@@ -324,9 +195,22 @@ const SignUpPage = () => {
                 name="dob"
                 value={user.dob}
                 onChange={handleChange}
-                className="px-4 py-2 border border-slate-500 text-blue-900 font-semibold shadow-sm rounded-full "
+                className="px-4 py-3 border border-slate-500 text-white bg-[#1B4075] font-semibold shadow-sm rounded-full mb-4 md:mb-3 focus:outline-none focus:bg-[#1B4075]"
               />
-              <p className="font-bold text-lg p-2">Password</p>
+              
+              <p className="font-bold text-lg mt-2">Teacher/Alumini/Student</p>
+              <input
+                required
+                type="text"
+                id="position"
+                name="position"
+                value={user.position}
+                onChange={handleChange}
+                placeholder="Teacher/Alumini/Student"
+                className="px-4 py-3 border border-slate-500 text-white bg-[#1B4075] font-semibold shadow-sm rounded-full mb-4 md:mb-3 focus:outline-none focus:bg-[#1B4075]"
+              />
+              
+              <p className="font-bold text-lg mt-2">Password</p>
               <input
                 required
                 type="password"
@@ -335,33 +219,33 @@ const SignUpPage = () => {
                 value={user.password}
                 onChange={handleChange}
                 placeholder="Password"
-                className="px-4 py-2 border border-slate-500 text-blue-900 font-semibold shadow-sm rounded-full "
+                className="px-4 py-3 border border-slate-500 text-white bg-[#1B4075] font-semibold shadow-sm rounded-full mb-4 md:mb-3 focus:outline-none focus:bg-[#1B4075]"
               />
-              <button
-                style={{
-                  boxShadow: "0 0 10px rgba(30, 58, 138, 0.7)",
-                }}
-                className="text-base font-bold  w-2/3 sm:w-7/12 text-white py-4 p-2 mb-8 rounded-full mx-auto my-4 bg-blue-600 hover:bg-blue-800 transition-all duration-200 ease-in-out"
-                onClick={handleRegisterClick}
-              >
-                REQUEST REGISTER
-              </button>
+              
+              <div className="flex justify-center my-6">
+                <button
+                  className="bg-[#F4E23C] text-[#1B4075] font-extrabold py-4 md:py-5 px-6 w-40 md:w-40 rounded-full shadow-md hover:bg-yellow-500 transition duration-300"
+                  onClick={handleRegisterClick}
+                >
+                  REGISTER
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        {/* OTP Verification Modal */}
+
         {showOtpModal && (
-          <div className="bg-overlay absolute bg-[#bccbe175] w-screen h-screen flex items-center justify-center">
-            <div className="bg-white relative w-[90%] md:w-fit h-fit rounded-[16px] p-[1.5rem] flex flex-col items-center text-[#3A3285] gap-6 text-center pt-[2.5rem] pr-[2.5rem]">
+          <div className="bg-overlay fixed top-0 left-0 bg-[#bccbe175] w-screen h-screen flex items-center justify-center z-50">
+            <div className="bg-white relative w-[90%] md:w-fit h-fit rounded-[16px] p-[1rem] md:p-[1.5rem] flex flex-col items-center text-[#3A3285] gap-4 md:gap-6 text-center pt-[2rem] md:pt-[2.5rem]">
               <div
-                className="closeBtn absolute top-2 right-2 text-[2rem] cursor-pointer"
+                className="closeBtn absolute top-2 right-2 text-[1.5rem] md:text-[2rem] cursor-pointer"
                 onClick={() => {
                   setShowOtpModal(!showOtpModal);
                 }}
               >
                 <IoClose />
               </div>
-              <h1 className="text-[2rem] font-bold">Verify phone number</h1>
+              <h1 className="text-xl md:text-[2rem] font-bold">Verify phone number</h1>
               <h2>Enter OTP</h2>
               <VerificationModal
                 length={4}
