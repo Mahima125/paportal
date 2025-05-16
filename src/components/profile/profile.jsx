@@ -62,9 +62,9 @@ const Profile = () => {
               
                 </div>
         
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center text-white space-x-4">
                   <div className="relative">
-                    <FiBell  />
+                    <FiBell size={22} />
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                       1
                     </span>

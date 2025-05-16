@@ -6,10 +6,14 @@ function DashBoardNavBar({ opened, setOpened, setComp }) {
   const navigate = useNavigate();
   const screenSize = useScreenSize();
   return (
-    <header className="flex justify-between">
+    <header className="flex justify-between bg-white">
       <div className="flex">
         <div className="p-2">
-          <img src="Images/logo.png" alt="" />
+          <img 
+            src="src/assets/images/users/Coverimg.png" 
+            alt="" 
+            className="w-max h-10"
+          />
         </div>
         {screenSize.width > 820 && (
           <div className="pl-4 p-2">
@@ -66,6 +70,7 @@ function DashBoardNavBar({ opened, setOpened, setComp }) {
                 setComp((prev) =>
                   prev === "notification" ? "" : "notification"
                 );
+                navigate("/notification");
               }}
             >
               <div className="p-2 center relative">
@@ -132,7 +137,7 @@ function DashBoardNavBar({ opened, setOpened, setComp }) {
       <div>
         {screenSize.width > 820 && (
           <ul className="flex justify-center">
-            <li className="px-1" onClick={() => setOpened("home")}>
+            <li className="px-1" onClick={() => navigate("/dashboard")}>
               <div
                 className="p-2 center relative"
                 style={{
@@ -214,7 +219,7 @@ function DashBoardNavBar({ opened, setOpened, setComp }) {
             <li
               className="px-1"
               onClick={() => {
-                setOpened("messages");
+                //setOpened("messages");
                 navigate("/messages");
               }}
             >
@@ -319,6 +324,7 @@ function DashBoardNavBar({ opened, setOpened, setComp }) {
                 setComp((prev) =>
                   prev === "notification" ? "" : "notification"
                 );
+                navigate("/notification");
               }}
             >
               <div className="p-2 center relative">

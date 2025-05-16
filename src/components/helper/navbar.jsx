@@ -230,7 +230,7 @@ const Navbar = () => {
       <header className="fixed top-0 left-0 w-full bg-white z-30 shadow-md">
         <div className="flex justify-between items-center w-full px-4 py-2">
           <div className="text-indigo-900 text-lg font-bold">
-            <img className="h-10 md:h-12" src="Images/logo.png" alt="Logo" />
+            <img className="h-10 md:h-12" src="src/assets/images/users/Coverimg.png" alt="Logo" />
           </div>
 
           <div className="flex items-center">

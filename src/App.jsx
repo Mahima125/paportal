@@ -13,6 +13,7 @@ import SignUpPage from "./components/login/SignUpPage";
 import ScreenOne from "./components/onBoardings/screenOne.jsx";
 import ScreenTwo from "./components/onBoardings/screenTwo.jsx";
 import ScreenThree from "./components/onBoardings/screenThree.jsx";
+import ScreenFour from "./components/onBoardings/screenFour.jsx";
 import AdminDashboard from "./components/admin/adminDashboard/adminDashboard.jsx";
 import AuthProvider from "./contexts/AuthContext.jsx";
 import ProtectedRoute from "./components/protected/ProtectedRoute.jsx";
@@ -38,6 +39,7 @@ function App() {
           <Route path="/onboarding1" element={<ScreenOne />} />
           <Route path="/onboarding2" element={<ScreenTwo />} />
           <Route path="/onboarding3" element={<ScreenThree />} />
+          <Route path="/onboarding4" element={<ScreenFour />} />
           <Route path="/approval" element={<Approval_page />} />
           <Route 
             path="/dashboard" 

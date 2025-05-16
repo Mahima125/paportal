@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import NavBar from "../../helper/navbar";
 import axios from 'axios'
 import { Table, Space, message } from "antd";
 import useScreenSize from "../../../utils/useScreenSize";
@@ -214,7 +213,7 @@ const AdminDashboard = () => {
 
   return (
     <>
-      <NavBar />
+     
       <div className="bg-indigo-100 h-dvh">
       <div className={`bg-[#f1f1f1] min-h-[${screenSize.height}px]`}>
           <div className="w-11/12 mx-auto">
