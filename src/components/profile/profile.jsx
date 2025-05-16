@@ -82,14 +82,7 @@ const Profile = () => {
 
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6">
           <main className="my-4 min-h-[80vh] relative">
-            <button
-              className="back_btn text-[2rem] p-0 text-black bg-transparent hover:bg-transparent hover:left-[1.5rem] dark:text-white absolute left-[2rem] z-10"
-              onClick={() => {
-                window.location.href = "/dashboard";
-              }}
-            >
-              <IoMdArrowRoundBack />
-            </button>
+           
             <div className="page_components h-full flex flex-col lg:flex-row gap-6 mt-16">
               <section className="w-full lg:w-2/3 h-full rounded-xl bg-white ">
                 <div className="relative p-4">
