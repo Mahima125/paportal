@@ -20,26 +20,30 @@ import { MdAddLink } from "react-icons/md";
 import Footer from '../helper/footer';
 import userProfile from "../../../public/Images/profile.jpg";
 import { Link } from "react-router-dom";
-
-
-// async function handleImageExtraction(fileId) {
-//   try {
-//     const response = await fetch(`http://localhost:8080/images/${fileId}`);
-//     if (response.ok) {
-//       const blob = await response.blob();
-//       const url = URL.createObjectURL(blob);
-//       return url;
-//     } else {
-//       return "Images/profile.jpg";
-//     }
-//   } catch (e) {
-//     console.error(e);
-//     return null;
-//   }
-// }
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+  getDocs,
+  query,
+  orderBy,
+  doc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  getDoc
+} from "firebase/firestore";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "firebase/storage";
+import { auth, db, storage } from "../../firebase/config";
 
 const Dashboard = () => {
-  const [postData, setPostData] = useState();
+  const [postData, setPostData] = useState([]);
   const navigate = useNavigate();
   const [comp, setComp] = useState("");
   const [opened, setOpened] = useState("home");
@@ -49,67 +53,110 @@ const Dashboard = () => {
   const [postText, setPostText] = useState("");
   const [link, setLink] = useState("");
   const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const imageInputRef = useRef(null);
-  // if (!authToken) {
-  //   navigate("/login");
-  // }
-  // async function handleFetchPosts() {
-  //   const response = await fetch("http://localhost:8080/api/posts");
-  //   if (response.ok) {
-  //     const data = await response.json();
-  //     const structuredData = data.map((data) => {
-  //       return {
-  //         postId: data._id,
-  //         time: data.uploadTime,
-  //         userName: data.uploadedBy,
-  //         avatar: "Images/profile.jpg",
-  //         likes: data.likes,
-  //         likesCount: data.likes.length,
-  //         comments: data.commentsCount,
-  //         postText: data.caption,
-  //         fileId: data.fileId,
-  //         link: data.link,
-  //       };
-  //     });
-  //     const postsData = await Promise.all(
-  //       structuredData.map(async (post) => {
-  //         const imageUrlArray = [];
-  //         const imageUrl = await handleImageExtraction(post.fileId);
-  //         imageUrlArray.push(imageUrl);
 
-  //         return { ...post, images: imageUrlArray };
-  //       })
-  //     );
-  //     setPostData(postsData);
-  //   }
-  // }
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Check if user is authenticated - uncomment when your auth system is ready
   // useEffect(() => {
-  //   handleFetchPosts();
-  // }, []);
+  //   if (!authToken) {
+  //     navigate("/login");
+  //   }
+  // }, [authToken, navigate]);
 
   const screenSize = useScreenSize();
-  function handleAdminClick() {
-    navigate("/approval");
-  }
-
-  function handleAdminDashboardClick() {
-    navigate("/admindashboard");
-  }
 
   function handleMessageClick() {
     navigate("/messages");
   }
 
   function handleNotificationClick() {
-    // navigate("/notification");
     setComp((prev) => (prev === "notification" ? "" : "notification"));
-    console.log(comp);
   }
 
-  function handleUpdateClick() {
-    navigate("/update");
+  function handleSavedClick() {
+    navigate("/saved");
   }
 
+  const toggleLike = async (postId, userId) => {
+    try {
+      const postRef = doc(db, "posts", postId);
+
+      // Get the current post data to check if user already liked
+      const postDoc = await getDoc(postRef);
+      const postData = postDoc.data();
+
+      if (postData.likes && postData.likes.includes(userId)) {
+        // User already liked the post, so unlike it
+        await updateDoc(postRef, {
+          likes: arrayRemove(userId)
+        });
+        return false; // Return false to indicate user unliked the post
+      } else {
+        // User hasn't liked the post, so like it
+        await updateDoc(postRef, {
+          likes: arrayUnion(userId)
+        });
+        return true; // Return true to indicate user liked the post
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      throw error;
+    }
+  };
+
+  // Updated image upload function
+  // Updated image upload function
+ // Alternative upload method with better error handling
+async function uploadImage(file) {
+  try {
+    console.log("Starting upload process...");
+    
+    // Create a unique filename
+    const timestamp = Date.now();
+    const fileName = `images/${timestamp}-${file.name}`;
+    
+    // Get storage instance and create reference
+    const storage = getStorage();
+    const storageRef = ref(storage, fileName);
+    
+    console.log("Uploading to:", fileName);
+    
+    // Set metadata (optional but helpful)
+    const metadata = {
+      contentType: file.type,
+      customMetadata: {
+        'uploadedBy': 'dashboard',
+        'uploadTime': new Date().toISOString()
+      }
+    };
+    
+    // Upload file with metadata
+    const snapshot = await uploadBytes(storageRef, file, metadata);
+    console.log("Upload completed successfully");
+    
+    // Get the download URL
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    console.log('File available at:', downloadURL);
+    
+    return downloadURL;
+    
+  } catch (error) {
+    console.error('Upload failed:', error);
+    
+    // More specific error handling
+    if (error.code === 'storage/unauthorized') {
+      throw new Error('Permission denied. Check Firebase Storage rules.');
+    } else if (error.code === 'storage/canceled') {
+      throw new Error('Upload was canceled.');
+    } else if (error.code === 'storage/unknown') {
+      throw new Error('Unknown error occurred. Check your internet connection.');
+    } else {
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+  }
+}
   const handleImageClick = () => {
     if (imageInputRef.current) {
       imageInputRef.current.click();
@@ -119,6 +166,10 @@ const Dashboard = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      console.log("Image selected:", file.name);
+      setImageFile(file);
+
+      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImage(reader.result);
@@ -128,58 +179,104 @@ const Dashboard = () => {
   };
 
   const handlePostSubmit = async () => {
-    const imageInput = imageInputRef.current;
-    const imageFile = imageInput.files[0];
-
     if (!postText.trim()) {
       alert("Please enter some text for your post.");
       return;
     }
 
-    if (!imageFile && !link.trim()) {
-      alert("Please add an image or enter a link for your post.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("username", user.name);
-    formData.append("caption", postText);
-    formData.append("link", link);
-
-    if (imageFile) {
-      formData.append("file", imageFile);
-    }
+    setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8080/upload", {
-        method: "POST",
-        body: formData,
-      });
+      let imageUrl = null;
 
-      if (response.ok) {
-        handleFetchPosts();
-        setIsModalOpen(false);
-        setPostText("");
-        setLink("");
-        setImage(null);
-        console.log("Posting successful");
-      } else {
-        console.error("Failed to create post.");
-        alert("Failed to create post. Please try again later.");
+      // Upload image if exists using the new uploadImage function
+      // Upload image if exists using the Firebase SDK
+      // Upload image if exists
+      if (imageFile) {
+        try {
+          console.log("Uploading image...");
+          imageUrl = await uploadImage(imageFile);
+          console.log("Image uploaded successfully. URL:", imageUrl);
+        } catch (uploadError) {
+          console.error("Upload error:", uploadError);
+          alert(`Failed to upload image: ${uploadError.message}`);
+          setIsLoading(false);
+          return;
+        }
       }
+
+      // Post data
+      const postData = {
+        username: user?.name || "Anonymous User",
+        caption: postText,
+        link: link || "",
+        imageUrl,
+        uploadTime: serverTimestamp(),
+        likes: [],
+        commentsCount: 0
+      };
+
+      console.log("Saving post data:", postData);
+
+      // Add to Firestore
+      await addDoc(collection(db, "posts"), postData);
+
+      // Refresh UI
+      await fetchPostsFromFirebase();
+
+      // Reset form
+      setIsModalOpen(false);
+      setPostText("");
+      setLink("");
+      setImage(null);
+      setImageFile(null);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+
+      console.log("✅ Post successfully saved to Firebase!");
+
     } catch (error) {
-      console.error("Error creating post:", error);
-      alert("Failed to create post. Please try again later.");
+      console.error("❌ Error creating post:", error);
+      alert(`Failed to create post: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleAddLink = () => {
-    setIsModalOpen(true);
+  // Update the fetchPostsFromFirebase function to include comments array
+  const fetchPostsFromFirebase = async () => {
+    setIsLoading(true);
+    try {
+      const postsQuery = query(collection(db, "posts"), orderBy("uploadTime", "desc"));
+      const querySnapshot = await getDocs(postsQuery);
+
+      const postsData = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          postId: doc.id,
+          time: data.uploadTime ? new Date(data.uploadTime.toDate()).toLocaleString() : "Just now",
+          username: data.username,
+          avatar: userProfile,
+          likes: data.likes || [],
+          likesCount: data.likes?.length || 0,
+          comments: data.comments || [],
+          postText: data.caption,
+          images: data.imageUrl ? [data.imageUrl] : [], // This will now use the proper Firebase Storage URL
+          link: data.link || ""
+        };
+      });
+
+      setPostData(postsData);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  function handleSavedClick() {
-    navigate("/saved");
-  }
+  // Load posts when component mounts
+  useEffect(() => {
+    fetchPostsFromFirebase();
+  }, []);
 
   return (
     <div className="min-h-screen ">
