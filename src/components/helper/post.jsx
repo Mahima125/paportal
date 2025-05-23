@@ -2,220 +2,124 @@ import { useContext, useState, useEffect } from "react";
 import { FaRegThumbsUp, FaThumbsUp } from "react-icons/fa6";
 import { FiSend } from "react-icons/fi";
 import { AuthContext } from "../../contexts/AuthContext";
-import { 
-  doc, 
-  updateDoc, 
-  arrayUnion, 
-  arrayRemove, 
-  getDoc, 
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  orderBy,
-  serverTimestamp
-} from "firebase/firestore";
-import { db } from "../../firebase/config";
-
-// Import the CommentItem component
-import CommentItem from "./CommentItem";
 
 function formatDateTime(timestamp, comment) {
-  try {
-    // Handle Firebase Timestamp objects
-    if (timestamp && typeof timestamp.toDate === 'function') {
-      timestamp = timestamp.toDate();
-    }
-    
-    // Handle string timestamps
-    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
-    
-    let options;
-    if (comment) {
-      options = {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      };
-    } else {
-      options = {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      };
-    }
-    return date.toLocaleDateString("en-US", options);
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return "Invalid date";
+  const date = new Date(timestamp);
+  let options;
+  if (comment) {
+    options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    };
+  } else {
+    options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    };
   }
+  return date.toLocaleDateString("en-US", options);
 }
 
 const Post = ({
   username,
   avatar,
   images,
-  likes = [],
+  likes,
   postText,
   uploadedTime,
   link,
-  postId,
-  likesCount = 0,
-  comments = 0,
+  fileId,
+  likesCount,
 }) => {
   const [commentsLoaded, setCommentsLoaded] = useState(false);
   const [postComments, setPostComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [likeCount, setLikesCount] = useState(likesCount);
-  const { currentUser } = useContext(AuthContext);
-  const userId = currentUser?.uid || null;
-  const [liked, setLiked] = useState(userId ? likes.includes(userId) : false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Debug logging to identify the issue
-  useEffect(() => {
-    console.log("Current User:", currentUser);
-    console.log("UserId:", userId);
-    console.log("PostId:", postId);
-  }, [currentUser, userId, postId]);
-
+  const { user } = useContext(AuthContext);
+  const userId = user && user._id;
+  const [liked, setLiked] = useState(likes.includes(userId));
   useEffect(() => {
     setLikesCount(likesCount);
-    // Only check includes if userId is not null
-    setLiked(userId ? likes.includes(userId) : false);
+    setLiked(likes.includes(userId));
   }, [likesCount, likes, userId]);
+  const handleComment = (e, postId) => {
+    const obj = {
+      postId,
+      action: "Comment",
+    };
+    console.log(obj);
+  };
 
   const handleLike = async () => {
-    // Check if user is logged in and show a message
-    if (!currentUser) {
-      alert("Please log in to like posts");
-      return;
-    }
-    
-    // Check if postId exists
-    if (!postId) {
-      console.error("Post ID is missing");
-      return;
-    }
-
-    // Check if userId is valid
-    if (!userId) {
-      console.error("User ID is missing");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const postRef = doc(db, "posts", postId);
-      
-      // First check if the post exists
-      const postDoc = await getDoc(postRef);
-      if (!postDoc.exists()) {
-        console.error("Post does not exist");
-        return;
+    const urlPlaceholder = liked ? "unlike" : "like";
+    const response = await fetch(
+      `http://localhost:8080/api/posts/${fileId}/${urlPlaceholder}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: userId }),
       }
-
-      // Check if the user already liked this post
-      const currentLikes = postDoc.data().likes || [];
-      const userLiked = currentLikes.includes(userId);
-
-      if (userLiked) {
-        // Unlike
-        await updateDoc(postRef, {
-          likes: arrayRemove(userId)
-        });
-        setLiked(false);
-        setLikesCount(prev => Math.max(0, prev - 1));
-      } else {
-        // Like
-        await updateDoc(postRef, {
-          likes: arrayUnion(userId)
-        });
-        setLiked(true);
-        setLikesCount(prev => prev + 1);
-      }
-    } catch (error) {
-      console.error("Error updating like status:", error);
-    } finally {
-      setIsLoading(false);
+    );
+    if (response.ok) {
+      setLiked(!liked);
+      setLikesCount((prev) => (liked ? prev - 1 : prev + 1));
     }
   };
 
   const handleViewComments = async () => {
-    if (!postId) {
-      console.error("Cannot view comments: Post ID is missing");
-      return;
-    }
-    
-    setIsLoading(true);
     try {
-      const commentsRef = collection(db, "posts", postId, "comments");
-      const commentsQuery = query(commentsRef, orderBy("commentTime", "desc"));
-      
-      const querySnapshot = await getDocs(commentsQuery);
-      const commentsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
-      setPostComments(commentsData);
+      const response = await fetch(
+        `http://localhost:8080/api/posts/${fileId}/comments`
+      );
+      const data = await response.json();
+      setPostComments(data);
       setCommentsLoaded(true);
     } catch (error) {
       console.error("Error fetching comments:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleSendComment = async () => {
-    if (!currentUser) {
-      alert("Please log in to comment");
-      return;
-    }
-    
-    if (!postId) {
-      console.error("Cannot comment: Post ID is missing");
-      return;
-    }
-    
     if (newComment.trim() === "") {
-      alert("Please enter a comment");
+      alert("Oops! Guess you are missing to fill the comment section");
       return;
     }
 
-    setIsLoading(true);
+    const commentData = {
+      username: user && user.name,
+      comment: newComment,
+      commentTime: new Date().toISOString(),
+    };
+
     try {
-      const commentsRef = collection(db, "posts", postId, "comments");
-      
-      const commentData = {
-        username: currentUser?.displayName || "Anonymous User",
-        userId: userId,
-        comment: newComment,
-        commentTime: serverTimestamp()
-      };
-
-      // Add to Firestore
-      await addDoc(commentsRef, commentData);
-      
-      // Update comment count on the post
-      const postRef = doc(db, "posts", postId);
-      await updateDoc(postRef, {
-        commentsCount: (comments || 0) + 1
-      });
-
-      // Clear comment field and refresh comments
-      setNewComment("");
-      handleViewComments();
+      const response = await fetch(
+        `http://localhost:8080/api/posts/${fileId}/comments`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(commentData),
+        }
+      );
+      if (response.ok) {
+        setNewComment("");
+        handleViewComments();
+      }
     } catch (error) {
       console.error("Error sending comment:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -225,13 +129,13 @@ const Post = ({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center">
           <img
-            src={avatar || "/default-avatar.jpg"}
+            src={avatar}
             alt={`${username}'s avatar`}
             className="w-10 h-10 rounded-full border-2 border-black object-cover mr-3"
           />
           <div>
             <p className="text-gray-800 font-bold text-sm md:text-base">
-              {username || "Anonymous"}
+              {username}
             </p>
             <p className="text-gray-600 text-xs md:text-base max-w-20 md:max-w-full">
               Posted on {formatDateTime(uploadedTime)}
@@ -278,7 +182,6 @@ const Post = ({
           <p
             className="pl-5 flex items-center gap-1 cursor-pointer"
             onClick={handleLike}
-            disabled={isLoading}
           >
             {liked ? (
               <FaThumbsUp className="text-backgroundColor-commentblue" />
@@ -294,26 +197,20 @@ const Post = ({
         <div>
           <div className="flex items-center pr-6 pl-2 py-2 mx-auto">
             <img
-              src={currentUser?.photoURL || "/Images/profile.jpg"}
+              src="Images/profile.jpg"
               alt="avatar"
               className="w-10 h-10 rounded-full object-cover mr-3 border-2 border-black"
             />
             <input
               type="text"
               className="md:p-2 p-1 rounded-3xl md:w-full text-xs md:text-base w-11/12 font-semibold placeholder:text-black bg-backgroundColor-gray"
-              placeholder={currentUser ? "Add a comment..." : "Log in to comment"}
+              placeholder="Add a comment..."
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              disabled={!currentUser}
             />
             <button
               onClick={handleSendComment}
-              disabled={isLoading || !newComment.trim() || !currentUser}
-              className={`ml-2 p-1 md:p-2 bg-backgroundColor-gray rounded-3xl text-xs md:text-base font-semibold ${
-                currentUser && newComment.trim() 
-                  ? "text-backgroundColor-commentblue" 
-                  : "text-gray-400"
-              }`}
+              className="ml-2 p-1 md:p-2 bg-backgroundColor-gray rounded-3xl text-xs md:text-base font-semibold text-backgroundColor-commentblue"
             >
               Send
             </button>
@@ -321,16 +218,16 @@ const Post = ({
           {commentsLoaded ? (
             <div className="pl-2">
               {postComments.length > 0 ? (
-                postComments.map((comment) => (
-                  <CommentItem
-                    key={comment.id}
-                    username={comment.username}
-                    content={comment.comment}
-                    timestamp={comment.commentTime}
-                  />
+                postComments.map((comment, index) => (
+                  <div key={index} className="my-2">
+                    <p className="font-semibold">
+                      {comment.username} commented "{comment.comment}" on{" "}
+                      {formatDateTime(comment.commentTime, true)}
+                    </p>
+                  </div>
                 ))
               ) : (
-                <p>No comments yet</p>
+                <p>No comments</p>
               )}
             </div>
           ) : (
